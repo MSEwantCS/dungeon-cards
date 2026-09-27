@@ -71,4 +71,4 @@ open dungeon-cards.html       # macOS
 
 ## 许可
 
-仅作学习与娱乐用途。
+基于 [MIT License](LICENSE) 开源，可自由使用、修改与分发。
