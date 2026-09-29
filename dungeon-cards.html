@@ -765,7 +765,10 @@ function renderMap(){
     html+=`<div class="${cls}" style="left:${(n.x/map.W*100)}%;top:${n.y}px" ${clickable} title="${nodeName(n.type)}">${NODE_ICO[n.type]}</div>`;
   });
   area.innerHTML=html;
-  $('#side-run').innerHTML = `职业：<span class="kv">${G.className}</span><br>等级：<span class="kv">${G.lvl}</span><br>经验：<span class="kv">${G.xp}/${xpNeeded(G.lvl)}</span><br>命中：<span class="kv">+${attackBonus()}</span><br>生命：<span class="kv">${G.hp}/${G.maxHp}</span><br>金币：<span class="kv">${G.gold}</span><br>卡组：<span class="kv">${G.deck.length}</span> 张<br>遗物：<span class="kv">${G.relics.length}</span>`;
+  const relicList = G.relics.length
+    ? G.relics.map(r=>`<div style="margin:4px 0">${r.emo} <b style="color:var(--ink)">${r.name}</b><br><span style="font-size:11px">${r.desc}</span></div>`).join('')
+    : '<span style="font-size:11px">（暂无）</span>';
+  $('#side-run').innerHTML = `职业：<span class="kv">${G.className}</span><br>等级：<span class="kv">${G.lvl}</span><br>经验：<span class="kv">${G.xp}/${xpNeeded(G.lvl)}</span><br>命中：<span class="kv">+${attackBonus()}</span><br>生命：<span class="kv">${G.hp}/${G.maxHp}</span><br>金币：<span class="kv">${G.gold}</span><br>卡组：<span class="kv">${G.deck.length}</span> 张<br>遗物：<span class="kv">${G.relics.length}</span><hr style="border-color:var(--line);margin:8px 0">${relicList}`;
   updateTop();
 }
 function nodeName(t){return {combat:'战斗',elite:'精英战',event:'未知事件',treasure:'宝箱',rest:'篝火',boss:'BOSS'}[t];}
@@ -827,11 +830,10 @@ function startCombat(kind){
     busy:false, ended:false, _hitSeq:0, _handUids:null,
     logs:[],
   };
-  // relic start hooks
+  // relic start hooks（charm 的格挡放到 beginTurn 里加，因为每回合开始会清零格挡）
   G.relics.forEach(r=>{
-    if(r.id==='charm') C.block+=6;
-    if(r.id==='banner') C.strength+=2;
-    if(r.id==='amulet') C.regen+=2;
+    if(r.id==='banner'){ C.strength+=2; logMsg('🚩 战旗：+2 力量'); }
+    if(r.id==='amulet'){ C.regen+=2; logMsg('💗 治疗护符：+2 再生'); }
   });
   go('combat');
   $('#cb-emo').textContent=G.emo;
@@ -845,6 +847,7 @@ function beginTurn(){
   C.turn++;
   C.energy=C.maxEnergy;
   C.block=0;
+  if(C.turn===1 && G.relics.some(r=>r.id==='charm')){ C.block+=6; logMsg('🛡️ 铁护符：战斗开始 +6 格挡'); }
   C.attackedThisTurn=false;
   C.busy=false; C._hitSeq=0;
   const btn=$('#btn-endturn'); if(btn) btn.disabled=false;
